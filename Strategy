@@ -1,0 +1,60 @@
+#include <iostream>
+#include <stdexcept>
+
+using namespace std;
+
+// ---------------- Strategy Interface ----------------
+class PaymentStrategy {
+public:
+    virtual void pay(int amount) = 0;
+    virtual ~PaymentStrategy() = default;
+};
+
+// ---------------- Concrete Strategies ----------------
+class CardPayment : public PaymentStrategy {
+public:
+    void pay(int amount) override {
+        cout << "Paying " << amount << " using Card" << endl;
+    }
+};
+
+class UpiPayment : public PaymentStrategy {
+public:
+    void pay(int amount) override {
+        cout << "Paying " << amount << " using UPI" << endl;
+    }
+};
+
+// ---------------- Context ----------------
+class ShoppingCart {
+private:
+    PaymentStrategy* paymentStrategy = nullptr;
+
+public:
+    void setPaymentStrategy(PaymentStrategy* strategy) {
+        paymentStrategy = strategy;
+    }
+
+    void checkout(int amount) {
+        if (paymentStrategy == nullptr) {
+            throw logic_error("No payment strategy set");
+        }
+        paymentStrategy->pay(amount);
+    }
+};
+
+// ---------------- Client ----------------
+int main() {
+    ShoppingCart cart;
+
+    CardPayment card;
+    UpiPayment upi;
+
+    cart.setPaymentStrategy(&card);
+    cart.checkout(500);
+
+    cart.setPaymentStrategy(&upi);
+    cart.checkout(300);
+
+    return 0;
+}
