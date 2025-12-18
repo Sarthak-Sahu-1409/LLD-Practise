@@ -1,0 +1,82 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+// ---------------- Component ----------------
+class Notification {
+public:
+    virtual ~Notification() = default;
+    virtual void send(const string& to, const string& message) = 0;
+};
+
+// ---------------- Concrete Component ----------------
+class EmailNotification : public Notification {
+public:
+    void send(const string& to, const string& message) override {
+        cout << "[EMAIL] To: " << to
+             << " | Message: " << message << endl;
+    }
+};
+
+// ---------------- Base Decorator ----------------
+class NotificationDecorator : public Notification {
+protected:
+    Notification* wrappee;
+
+public:
+    NotificationDecorator(Notification* wrappee)
+        : wrappee(wrappee) {}
+
+    void send(const string& to, const string& message) override {
+        wrappee->send(to, message);
+    }
+
+    virtual ~NotificationDecorator() {
+        delete wrappee;
+    }
+};
+
+// ---------------- Concrete Decorator : Logging ----------------
+class LoggingNotification : public NotificationDecorator {
+public:
+    LoggingNotification(Notification* wrappee) : NotificationDecorator(wrappee) {}
+
+    void send(const string& to, const string& message) override {
+        cout << "[LOG] Sending to " << to << endl;
+        NotificationDecorator::send(to, message);
+        cout << "[LOG] Done" << endl;
+    }
+};
+
+// ---------------- Concrete Decorator : Prefix ----------------
+class PrefixNotification : public NotificationDecorator {
+    string prefix;
+
+public:
+    PrefixNotification(Notification* wrappee, const string& prefix)
+        : NotificationDecorator(wrappee), prefix(prefix) {}
+
+    void send(const string& to, const string& message) override {
+        NotificationDecorator::send(to, prefix + ": " + message);
+    }
+};
+
+// ---------------- Client ----------------
+int main() {
+    Notification* notification =
+        new PrefixNotification(
+            new LoggingNotification(
+                new EmailNotification()
+            ),
+            "[IMPORTANT]"
+        );
+
+    notification->send(
+        "user@example.com",
+        "Complete your profile"
+    );
+
+    delete notification;  // cleans entire chain
+    return 0;
+}
