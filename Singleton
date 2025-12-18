@@ -1,0 +1,36 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Logger {
+private:
+    Logger() = default;
+
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
+
+public:
+    static Logger* getInstance() {
+        static Logger instance;   // still single, still thread-safe
+        return &instance;
+    }
+
+    void info(const string& msg) {
+        cout << "[INFO] " << msg << '\n';
+    }
+
+    void error(const string& msg) {
+        cerr << "[ERROR] " << msg << '\n';
+    }
+};
+
+// ---------------- Client ----------------
+int main() {
+    Logger* logger = Logger::getInstance();
+
+    logger->info("Server started");
+    logger->error("Connection failed");
+
+    return 0;
+}
